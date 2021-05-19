@@ -1,5 +1,5 @@
 use crate::{
-    definitions::{
+    definitions::{INFINITY,
         near_zero, random_double, random_in_unit_sphere, random_unit_vector, reflect, reflectance,
         refract,
     },
@@ -69,25 +69,42 @@ impl Dielectric {
 
 impl Material for Dielectric {
     fn scatter(&self, r_in: &Ray, rec: &HitRecord, _scattered: &Ray) -> Option<(Color, Ray)> {
-        let refraction_ratio = if rec.front_face {
-            1.0 / self.refractive_index
-        } else {
-            self.refractive_index
-        };
+    //     let refraction_ratio = if rec.front_face {
+    //         1.0 / self.refractive_index
+    //     } else {
+    //         self.refractive_index
+    //     };
 
-        let unit_direction = r_in.direction().normalize();
-        let cos_theta = -unit_direction.dot(&rec.normal).min(1.0);
-        let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
+    //     let unit_direction = r_in.direction().normalize();
+    //     let cos_theta = -unit_direction.dot(&rec.normal).min(1.0);
+    //     let sin_theta = (1.0 - cos_theta.powi(2)).sqrt();
 
-        let cannot_refract = refraction_ratio * sin_theta > 1.0
-            || reflectance(cos_theta, refraction_ratio) > random_double(0.0, 1.0);
+    //     let cannot_refract = refraction_ratio * sin_theta > 1.0
+    //         || reflectance(cos_theta, refraction_ratio) > random_double(0.0, 1.0);
 
-        let direction = if cannot_refract {
-            reflect(&unit_direction, &rec.normal)
-        } else {
-            refract(&unit_direction, &rec.normal, refraction_ratio)
-        };
+    //     let direction=refract(&unit_direction, &rec.normal, refraction_ratio);
 
-        Some((Color::new(1.0, 1.0, 1.0), Ray::new(rec.point, direction)))
+
+    //     Some((Color::new(1.0, 1.0, 1.0), Ray::new(rec.point, direction)))
+    // }
+    let attenuation = Color::new(1.0, 1.0, 1.0);
+    let (outward_normal, ni_over_nt, cosine) = if r_in.direction().dot(&rec.normal) > 0.0 {
+        let cosine = self.refractive_index * r_in.direction().dot(&rec.normal) / r_in.direction().magnitude();
+        (-rec.normal, self.refractive_index, cosine)
+    }
+    else{
+        let cosine = -r_in.direction().dot(&rec.normal) / r_in.direction().magnitude();
+        (rec.normal, 1.0 / self.refractive_index, cosine)
+    };
+
+    if let Some(refracted) = refract(&r_in.direction(), &outward_normal, ni_over_nt) {
+        //let reflect_prob = reflectance(cosine, self.refractive_index);
+            let scattered = Ray::new(rec.point, refracted);
+            return Some((attenuation,scattered))
+    }
+    let reflected = reflect(&r_in.direction(), &rec.normal);
+    let scattered = Ray::new(rec.point, reflected);
+    Some((attenuation,scattered ))
+
     }
 }

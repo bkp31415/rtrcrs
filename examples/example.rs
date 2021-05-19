@@ -20,7 +20,7 @@ fn main() {
     const ASPECT_RATIO: f64 = 16.0 / 9.0;
     const IMAGE_WIDTH: i32 = 400;
     const IMAGE_HEIGHT: i32 = (IMAGE_WIDTH as f64 / ASPECT_RATIO) as i32;
-    const SAMPLES_PER_PIXEL: i32 = 100;
+    const SAMPLES_PER_PIXEL: i32 = 8;
     const MAX_DEPTH: i32 = 50;
 
     //World
@@ -43,7 +43,7 @@ fn main() {
     )));
     world.add(Arc::new(Sphere::new(
         Point3::new(-1.0, 0.0, -1.0),
-        -0.45,
+        -0.40,
         material_left,
     )));
     world.add(Arc::new(Sphere::new(
@@ -56,13 +56,12 @@ fn main() {
         0.5,
         material_center,
     )));
-
     // Camera
     let camera = Camera::new(
-        &Point3::new(-2.0, 1.0, 1.0),
+        &Point3::new(-2.0, 2.0, 1.0),
         &Point3::new(0.0, 0.0, -1.0),
         &Vec3::new(0.0, 1.0, 0.0),
-        20.0,
+        30.0,
         ASPECT_RATIO,
     );
 

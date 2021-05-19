@@ -55,14 +55,23 @@ pub fn reflect(v: &Vec3, n: &Vec3) -> Vec3 {
     v - 2.0 * v.dot(n) * n
 }
 
-pub fn refract(uv: &Vec3, n: &Vec3, etai_over_etat: f64) -> Vec3 {
-    let cos_theta = n.dot(&-uv).min(1.0);
-    let r_out_perpendicular = etai_over_etat * (uv + cos_theta * n);
-    let r_out_parallel = -((1.0 - r_out_perpendicular.dot(&r_out_perpendicular))
-        .abs()
-        .sqrt())
-        * n;
-    r_out_perpendicular + r_out_parallel
+pub fn refract(v: &Vec3, n: &Vec3, ni_over_nt: f64) -> Option<Vec3> {
+    // let cos_theta = n.dot(&-uv).min(1.0);
+    // let r_out_perpendicular = etai_over_etat * (uv + cos_theta * n);
+    // let r_out_parallel = -((1.0 - r_out_perpendicular.dot(&r_out_perpendicular))
+    //     .abs()
+    //     .sqrt())
+    //     * n;
+    // r_out_perpendicular + r_out_parallel
+    let uv = v.normalize();
+    let dt = uv.dot(&n);
+    let discriminant = 1.0 - ni_over_nt.powi(2) * (1.0 - dt.powi(2));
+    if discriminant > 0.0 {
+        let refracted = ni_over_nt * (uv - n * dt) - n * discriminant.sqrt();
+        Some(refracted)
+    } else {
+        None
+    }
 }
 
 pub fn reflectance(cosine: f64, ref_idx: f64) -> f64 {
